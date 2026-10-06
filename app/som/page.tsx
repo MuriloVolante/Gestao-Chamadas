@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Bell, Check, Eraser, Play, Radio, RotateCcw, Volume2, VolumeX, Waves } from 'lucide-react'
+import { ArrowLeft, Bell, Check, Eraser, Play, Radio, RotateCcw, Volume1, Volume2, Waves } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
@@ -56,9 +56,9 @@ export default function SomPage() {
   return (
     <main className="theme-dark flex min-h-screen flex-col" style={tone(config.instrument)}>
       <header className="sticky top-0 z-10 border-b border-border bg-sidebar/94 backdrop-blur-md">
-        <div className="mx-auto flex h-[66px] max-w-3xl items-center justify-between px-4 sm:px-6">
-          <a href="/" className={buttonVariants({ variant: 'ghost', className: '-ml-3' })}><ArrowLeft /> Voltar</a>
+        <div className="mx-auto flex h-[66px] max-w-7xl items-center justify-between px-4 sm:px-6">
           <Logo />
+          <a href="/" className={buttonVariants({ variant: 'outline' })}><ArrowLeft /> Voltar</a>
         </div>
       </header>
 
@@ -133,7 +133,7 @@ export default function SomPage() {
         <Card>
           <CardHeader label="Passo 3" title="Volume" />
           <div className="flex items-center gap-4">
-            <VolumeX className="size-5 shrink-0 text-muted-foreground" />
+            <Volume1 className="size-5 shrink-0 text-muted-foreground" />
             <input type="range" min={0} max={100} step={5} value={config.volume} onChange={e => update({ volume: Number(e.target.value) })} aria-label="Volume" className="range flex-1" style={{ '--value': `${config.volume}%` } as React.CSSProperties} />
             <Volume2 className="size-5 shrink-0 text-muted-foreground" />
             <span className="w-12 text-right font-display text-lg font-semibold tabular-nums">{config.volume}%</span>
