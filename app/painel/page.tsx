@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { Logo } from '@/components/brand/logo'
+import { LiveDot } from '@/components/ui/live-dot'
 
 type Call = { id: number; patientName: string; departmentName: string; calledAt: string }
 
@@ -45,22 +47,27 @@ export default function PainelPage() {
   }
 
   return (
-    <main className="tv-panel flex min-h-screen flex-col overflow-hidden bg-primary text-primary-foreground">
-      <section className="flex flex-1 flex-col items-center justify-center px-6 pb-12 pt-16 text-center">
-        <p className="tv-kicker font-mono text-base uppercase tracking-[0.4em]">Chamado agora</p>
+    <main className="tv-panel relative flex min-h-screen flex-col overflow-hidden text-foreground">
+      <header className="flex items-center justify-between px-8 py-6 lg:px-12">
+        <Logo size={46} textClassName="text-2xl" />
+      </header>
+      <section className="flex flex-1 flex-col items-center justify-center px-6 pb-20 text-center">
+        <p className="section-label flex items-center gap-3 text-base! tracking-[0.3em]!">
+          <LiveDot className="size-2.5" /> Chamado agora
+        </p>
         {current ? (
-          <>
-            <h1 className={`tv-name mt-8 max-w-[92vw] text-balance text-7xl font-black uppercase leading-none tracking-tight md:text-[9rem] lg:text-[10rem] ${flash ? 'tv-name-flash' : ''}`}>
+          <div key={current.id} className={flash ? 'animate-view-in' : ''}>
+            <h1 className="mt-10 max-w-[92vw] font-display text-7xl leading-[1.02] font-bold tracking-[-0.03em] text-balance uppercase md:text-[8.5rem] lg:text-[9.5rem]">
               {current.patientName}
             </h1>
-            <p className="tv-department mt-8 text-4xl font-bold md:text-5xl">{current.departmentName}</p>
-          </>
+            <p className="mt-10 inline-flex items-center gap-4 rounded-2xl border border-primary/35 bg-primary/8 px-8 py-4 font-display text-4xl font-semibold text-primary md:text-5xl">
+              {current.departmentName}
+            </p>
+          </div>
         ) : (
-          <p className="mt-10 text-3xl opacity-60">Aguardando próxima chamada</p>
+          <p className="mt-10 font-display text-3xl font-semibold text-muted-foreground">Aguardando próxima chamada</p>
         )}
       </section>
-
     </main>
   )
 }
-
