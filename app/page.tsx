@@ -138,7 +138,7 @@ export default function AtendimentoPage() {
           </Card>
 
           <Card className="overflow-hidden">
-            <CardHeader label="Registro compartilhado" title="Histórico de chamadas" description="Últimos 100 registros" icon={<History />} />
+            <CardHeader label="Registro compartilhado" title="Histórico de chamadas" description="Últimos 50 registros" icon={<History />} />
             <div className="-mx-5 max-h-80 overflow-auto sm:-mx-6">
               <table className="w-full text-left text-sm">
                 <thead className="sticky top-0 bg-card text-xs text-muted-foreground">

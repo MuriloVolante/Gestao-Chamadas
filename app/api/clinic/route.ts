@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { and, asc, desc, eq } from 'drizzle-orm'
+import { asc, desc, eq, lt } from 'drizzle-orm'
 import { db, ready } from '@/lib/db'
 import { callSound, departments, patientCalls } from '@/lib/schema'
 import { normalizeSound } from '@/lib/sound'
@@ -13,7 +13,7 @@ export async function GET() {
   await ready
   const [departmentRows, callRows, [sound]] = await Promise.all([
     db.select().from(departments).orderBy(asc(departments.name)),
-    db.select().from(patientCalls).orderBy(desc(patientCalls.calledAt)).limit(100),
+    db.select().from(patientCalls).orderBy(desc(patientCalls.calledAt)).limit(50),
     db.select().from(callSound).where(eq(callSound.id, 1)),
   ])
   return NextResponse.json({ departments: departmentRows, calls: callRows, sound: normalizeSound(sound?.config), cooldownMs: cooldownLeft(callRows[0]) })
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   const wait = cooldownLeft(last)
   if (wait) return NextResponse.json({ error: 'Aguarde para chamar o próximo.', cooldownMs: wait }, { status: 429 })
   const [call] = await db.insert(patientCalls).values({ patientName, departmentName, calledAt: new Date() }).returning()
-  await db.delete(patientCalls).where(eq(patientCalls.id, call.id - 100))
+  await db.delete(patientCalls).where(lt(patientCalls.id, call.id - 49))
   return NextResponse.json(call, { status: 201 })
 }
 
