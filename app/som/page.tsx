@@ -5,7 +5,7 @@ import { ArrowLeft, Bell, Check, Eraser, Play, Radio, RotateCcw, Volume1, Volume
 import { Logo } from '@/components/brand/logo'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
-import { DEFAULT_SOUND, Instrument, MAX_PER_STEP, NOTES, normalizeSound, playSound, SoundConfig, STEPS } from '@/lib/sound'
+import { DEFAULT_SOUND, Instrument, MAX_PER_STEP, Note, NOTES, normalizeSound, playSound, SoundConfig, STEPS } from '@/lib/sound'
 import { cn } from '@/lib/utils'
 
 const OPTIONS: { id: Instrument; name: string; description: string; icon: React.ReactNode }[] = [
@@ -24,24 +24,25 @@ export default function SomPage() {
   const [blocked, setBlocked] = useState<number | null>(null)
   const [status, setStatus] = useState('')
 
-  useEffect(() => { fetch('/api/sound', { cache: 'no-store' }).then(r => r.json()).then(c => { const n = normalizeSound(c); setConfig(n); setSaved(JSON.stringify(n)) }) }, [])
+  useEffect(() => { fetch('/api/sound', { cache: 'no-store' }).then(r => r.json()).then(c => { const n = normalizeSound(c); setConfig(c => (c === DEFAULT_SOUND ? n : c)); setSaved(JSON.stringify(n)) }) }, [])
 
   const dirty = saved !== null && saved !== JSON.stringify(config)
   const empty = config.steps.every(c => !c.length)
   const update = (patch: Partial<SoundConfig>) => setConfig(c => ({ ...c, ...patch }))
 
   function chooseInstrument(instrument: Instrument) {
-    const next = { ...config, instrument }
-    setConfig(next)
-    playSound(empty ? { ...next, steps: [[4], [2], [0]] } : next)
+    update({ instrument })
+    playSound({ ...config, steps: [[{ n: 4, i: instrument }], [{ n: 2, i: instrument }], [{ n: 0, i: instrument }]] })
   }
 
   function toggle(col: number, note: number) {
     const current = config.steps[col]
-    if (current.includes(note)) return update({ steps: config.steps.map((c, i) => (i === col ? c.filter(n => n !== note) : c)) })
-    if (current.length >= MAX_PER_STEP) { setBlocked(col); setTimeout(() => setBlocked(null), 1600); return }
-    update({ steps: config.steps.map((c, i) => (i === col ? [...c, note] : c)) })
-    playSound({ ...config, steps: [[note]] })
+    const existing = current.find(x => x.n === note)
+    const setCol = (notes: Note[]) => update({ steps: config.steps.map((c, i) => (i === col ? notes : c)) })
+    if (existing?.i === config.instrument) return setCol(current.filter(x => x.n !== note))
+    if (!existing && current.length >= MAX_PER_STEP) { setBlocked(col); setTimeout(() => setBlocked(null), 1600); return }
+    setCol(existing ? current.map(x => (x.n === note ? { n: note, i: config.instrument } : x)) : [...current, { n: note, i: config.instrument }])
+    playSound({ ...config, steps: [[{ n: note, i: config.instrument }]] })
   }
 
   async function save() {
@@ -54,7 +55,7 @@ export default function SomPage() {
   }
 
   return (
-    <main className="theme-dark flex min-h-screen flex-col" style={tone(config.instrument)}>
+    <main className="theme-dark flex min-h-screen flex-col">
       <header className="sticky top-0 z-10 border-b border-border bg-sidebar/94 backdrop-blur-md">
         <div className="mx-auto flex h-[66px] max-w-7xl items-center justify-between px-4 sm:px-6">
           <Logo />
@@ -70,13 +71,13 @@ export default function SomPage() {
         </div>
 
         <Card>
-          <CardHeader label="Passo 1" title="Escolha o toque" description="Clique para ouvir." />
+          <CardHeader label="Passo 1" title="Escolha o toque" description="Clique para ouvir. Cada toque tem uma cor; as notas que você colocar na grade ficam com a cor do toque escolhido." />
           <div className="grid gap-2 sm:grid-cols-3">
             {OPTIONS.map(o => {
               const active = config.instrument === o.id
               return (
                 <button key={o.id} type="button" aria-pressed={active} onClick={() => chooseInstrument(o.id)} style={tone(o.id)} className={cn('flex items-center gap-3 rounded-lg border p-4 text-left transition-[background-color,border-color,transform] duration-200 ease-spring active:scale-[.975]', active ? 'border-(--tone) bg-[color-mix(in_srgb,var(--tone)_12%,transparent)]' : 'border-input bg-field hover:border-tertiary')}>
-                  <span className={cn('grid size-10 shrink-0 place-items-center rounded-lg [&_svg]:size-5', active ? 'bg-(--tone) text-primary-foreground' : 'bg-secondary text-muted-foreground')}>{o.icon}</span>
+                  <span className={cn('grid size-10 shrink-0 place-items-center rounded-lg [&_svg]:size-5', active ? 'bg-(--tone) text-primary-foreground' : 'bg-[color-mix(in_srgb,var(--tone)_15%,transparent)] text-(--tone)')}>{o.icon}</span>
                   <span className="grid gap-0.5">
                     <span className="font-medium">{o.name}</span>
                     <span className="text-[13px] text-muted-foreground">{o.description}</span>
@@ -98,19 +99,21 @@ export default function SomPage() {
             <div className="grid min-w-[320px] gap-1.5" style={{ gridTemplateColumns: `2.75rem repeat(${STEPS}, minmax(0, 1fr))` }}>
               <span />
               {config.steps.map((_, col) => (
-                <span key={col} className={cn('pb-1 text-center text-[12px] tabular-nums transition-colors', step === col ? 'font-semibold text-(--tone)' : 'text-tertiary')}>{col + 1}</span>
+                <span key={col} className={cn('pb-1 text-center text-[12px] tabular-nums transition-colors', step === col ? 'font-semibold text-foreground' : 'text-tertiary')}>{col + 1}</span>
               ))}
               {NOTES.map((note, row) => (
                 <div key={note.name} className="contents">
                   <span className="flex items-center text-[13px] font-medium text-muted-foreground">{note.name}</span>
                   {config.steps.map((notes, col) => {
-                    const on = notes.includes(row)
+                    const cell = notes.find(x => x.n === row)
+                    const on = !!cell
                     return (
                       <button
                         key={col}
                         type="button"
                         aria-pressed={on}
-                        aria-label={`${note.name}, momento ${col + 1}`}
+                        aria-label={`${note.name}, momento ${col + 1}${cell ? `, ${OPTIONS.find(o => o.id === cell.i)?.name}` : ''}`}
+                        style={cell ? tone(cell.i) : undefined}
                         onClick={() => toggle(col, row)}
                         className={cn(
                           'h-11 rounded-md border transition-[background-color,border-color,box-shadow,transform] duration-200 ease-spring active:scale-[.93]',

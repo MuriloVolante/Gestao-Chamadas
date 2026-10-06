@@ -1,5 +1,6 @@
 export type Instrument = 'bipe' | 'sino' | 'suave'
-export type SoundConfig = { instrument: Instrument; volume: number; steps: number[][] }
+export type Note = { n: number; i: Instrument }
+export type SoundConfig = { instrument: Instrument; volume: number; steps: Note[][] }
 
 export const NOTES = [
   { name: 'Lá', freq: 880 },
@@ -12,15 +13,20 @@ export const STEPS = 5
 export const MAX_PER_STEP = 2
 export const STEP_MS = 180
 export const INSTRUMENTS: Instrument[] = ['bipe', 'sino', 'suave']
-export const DEFAULT_SOUND: SoundConfig = { instrument: 'bipe', volume: 60, steps: [[0], [0], [0], [], []] }
+export const DEFAULT_SOUND: SoundConfig = { instrument: 'bipe', volume: 60, steps: [[{ n: 0, i: 'bipe' }], [{ n: 0, i: 'bipe' }], [{ n: 0, i: 'bipe' }], [], []] }
 
 export function normalizeSound(value: unknown): SoundConfig {
   const v = (value ?? {}) as Partial<SoundConfig>
   const instrument = INSTRUMENTS.includes(v.instrument as Instrument) ? (v.instrument as Instrument) : DEFAULT_SOUND.instrument
   const volume = Number.isFinite(v.volume) ? Math.min(100, Math.max(0, Math.round(v.volume as number))) : DEFAULT_SOUND.volume
-  const steps = Array.from({ length: STEPS }, (_, i) => {
-    const col = Array.isArray(v.steps?.[i]) ? v.steps[i] : []
-    return [...new Set(col.filter(n => Number.isInteger(n) && n >= 0 && n < NOTES.length))].slice(0, MAX_PER_STEP)
+  const isInstrument = (i: unknown): i is Instrument => INSTRUMENTS.includes(i as Instrument)
+  const steps = Array.from({ length: STEPS }, (_, idx) => {
+    const col: unknown[] = Array.isArray(v.steps?.[idx]) ? v.steps[idx] : []
+    const notes = col
+      .map(x => (typeof x === 'number' ? { n: x, i: instrument } : (x as Note)))
+      .filter(x => x && Number.isInteger(x.n) && x.n >= 0 && x.n < NOTES.length)
+      .map(x => ({ n: x.n, i: isInstrument(x.i) ? x.i : instrument }))
+    return notes.filter((x, k) => notes.findIndex(y => y.n === x.n) === k).slice(0, MAX_PER_STEP)
   })
   return Array.isArray(v.steps) ? { instrument, volume, steps } : { ...DEFAULT_SOUND, instrument, volume }
 }
@@ -77,7 +83,7 @@ export function playSound(config: SoundConfig, onStep?: (step: number | null) =>
     master.gain.value = (config.volume / 100) ** 2 * 0.6
     master.connect(ac.destination)
     const start = ac.currentTime + 0.05
-    config.steps.slice(0, last + 1).forEach((col, i) => col.forEach(n => voice(ac, master, config.instrument, NOTES[n].freq, start + (i * STEP_MS) / 1000)))
+    config.steps.slice(0, last + 1).forEach((col, i) => col.forEach(x => voice(ac, master, x.i, NOTES[x.n].freq, start + (i * STEP_MS) / 1000)))
   } catch {
     return 0
   }

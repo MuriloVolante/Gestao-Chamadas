@@ -12,7 +12,8 @@ export default function PainelPage() {
   const previous = useRef<number | null>(null)
 
   async function load() {
-    const res = await fetch('/api/clinic', { cache: 'no-store' })
+    const res = await fetch('/api/clinic', { cache: 'no-store' }).catch(() => null)
+    if (!res?.ok) return
     const data = await res.json()
     if (data.calls[0] && data.calls[0].id !== previous.current) {
       previous.current = data.calls[0].id
