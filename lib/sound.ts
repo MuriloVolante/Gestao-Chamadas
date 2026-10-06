@@ -8,11 +8,11 @@ export const NOTES = [
   { name: 'Ré', freq: 587.33 },
   { name: 'Dó', freq: 523.25 },
 ]
-export const STEPS = 8
+export const STEPS = 5
 export const MAX_PER_STEP = 2
 export const STEP_MS = 180
 export const INSTRUMENTS: Instrument[] = ['bipe', 'sino', 'suave']
-export const DEFAULT_SOUND: SoundConfig = { instrument: 'bipe', volume: 60, steps: [[0], [0], [0], [], [], [], [], []] }
+export const DEFAULT_SOUND: SoundConfig = { instrument: 'bipe', volume: 60, steps: [[0], [0], [0], [], []] }
 
 export function normalizeSound(value: unknown): SoundConfig {
   const v = (value ?? {}) as Partial<SoundConfig>

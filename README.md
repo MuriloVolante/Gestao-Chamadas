@@ -3,7 +3,7 @@
 ## Testar localmente (Windows)
 
 1. Instale o Node.js LTS: https://nodejs.org
-2. Dê dois cliques em `iniciar.bat`.
+2. Na pasta do projeto, abra o terminal e rode `npm run iniciar`.
 
 Na primeira execução as dependências são instaladas. O navegador abre sozinho em http://localhost:3000. Painel da TV: http://localhost:3000/painel.
 
