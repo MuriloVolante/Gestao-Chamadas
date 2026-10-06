@@ -1,9 +1,13 @@
 import { cn } from '@/lib/utils'
+import { Mark } from './mark'
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <span className={cn('font-display text-[17px] font-semibold tracking-[-0.02em]', className)}>
-      Central de <span className="text-brand">Chamadas</span>
+    <span className={cn('inline-flex items-center gap-2.5', className)}>
+      <Mark />
+      <span className="font-display text-[17px] font-semibold tracking-[-0.02em]">
+        Central de <span className="text-brand">Chamadas</span>
+      </span>
     </span>
   )
 }

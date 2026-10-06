@@ -11,5 +11,6 @@ CREATE TABLE IF NOT EXISTS patient_calls (
   called_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-INSERT INTO medical_departments (name) VALUES ('Cardiologia'), ('Enfermagem'), ('Fisioterapia')
-ON CONFLICT (name) DO NOTHING;
+INSERT INTO medical_departments (name)
+SELECT unnest(ARRAY['Cardiologia', 'Enfermagem', 'Fisioterapia'])
+WHERE NOT EXISTS (SELECT 1 FROM medical_departments);

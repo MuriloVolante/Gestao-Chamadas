@@ -16,6 +16,7 @@
   --primary-foreground: #2d2d2d;
   --primary-hover: #86c42b;
   --brand: #4a8312;
+  --mark: #74b52a;
   --secondary: #ededec;
   --secondary-foreground: #2d2d2d;
   --muted: #ededec;
@@ -47,6 +48,7 @@
   --field: #2d2d2d;
   --primary-hover: #5fa31e;
   --brand: #96d737;
+  --mark: #96d737;
   --secondary: #3a3a3a;
   --secondary-foreground: #f2f2f2;
   --muted: #3a3a3a;

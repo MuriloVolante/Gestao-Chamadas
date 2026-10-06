@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
 import { and, asc, desc, eq } from 'drizzle-orm'
-import { db } from '@/lib/db'
+import { db, ready } from '@/lib/db'
 import { departments, patientCalls } from '@/lib/schema'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
+  await ready
   const [departmentRows, callRows] = await Promise.all([
     db.select().from(departments).orderBy(asc(departments.name)),
     db.select().from(patientCalls).orderBy(desc(patientCalls.calledAt)).limit(100),
@@ -14,6 +15,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  await ready
   const body = await request.json()
   const patientName = String(body.patientName ?? '').trim()
   const departmentName = String(body.departmentName ?? '').trim()
@@ -24,6 +26,7 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  await ready
   const body = await request.json()
   const id = Number(body.id)
   const name = String(body.name ?? '').trim()
@@ -33,6 +36,7 @@ export async function PATCH(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  await ready
   const body = await request.json()
   const name = String(body.name ?? '').trim()
   if (!name) return NextResponse.json({ error: 'Informe o nome do setor.' }, { status: 400 })
@@ -41,6 +45,7 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  await ready
   const id = Number(new URL(request.url).searchParams.get('id'))
   if (!id) return NextResponse.json({ error: 'Setor inválido.' }, { status: 400 })
   await db.delete(departments).where(eq(departments.id, id))
