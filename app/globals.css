@@ -2,6 +2,39 @@
 @import 'tw-animate-css';
 
 :root {
+  color-scheme: light;
+  --background: #f4f4f3;
+  --foreground: #2d2d2d;
+  --card: #ffffff;
+  --card-foreground: #2d2d2d;
+  --popover: #ffffff;
+  --popover-foreground: #2d2d2d;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #2d2d2d;
+  --field: #ffffff;
+  --primary: #96d737;
+  --primary-foreground: #2d2d2d;
+  --primary-hover: #86c42b;
+  --brand: #4a8312;
+  --secondary: #ededec;
+  --secondary-foreground: #2d2d2d;
+  --muted: #ededec;
+  --muted-foreground: #5f5f5f;
+  --accent: #ededec;
+  --accent-foreground: #2d2d2d;
+  --destructive: #d93a40;
+  --destructive-foreground: #ffffff;
+  --info: #1f87a3;
+  --warning: #e0a800;
+  --tertiary: #7a7a7a;
+  --border: #e2e2e0;
+  --input: #cfcfcd;
+  --ring: #96d737;
+  --radius: 10px;
+  --spring: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.theme-dark {
   color-scheme: dark;
   --background: #2d2d2d;
   --foreground: #f2f2f2;
@@ -11,9 +44,9 @@
   --popover-foreground: #f2f2f2;
   --sidebar: #262626;
   --sidebar-foreground: #f2f2f2;
-  --primary: #96d737;
-  --primary-foreground: #2d2d2d;
+  --field: #2d2d2d;
   --primary-hover: #5fa31e;
+  --brand: #96d737;
   --secondary: #3a3a3a;
   --secondary-foreground: #f2f2f2;
   --muted: #3a3a3a;
@@ -27,9 +60,8 @@
   --tertiary: #696969;
   --border: #464646;
   --input: #464646;
-  --ring: #96d737;
-  --radius: 10px;
-  --spring: cubic-bezier(0.22, 1, 0.36, 1);
+  background: var(--background);
+  color: var(--foreground);
 }
 
 @theme inline {
@@ -44,6 +76,8 @@
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-hover: var(--primary-hover);
+  --color-brand: var(--brand);
+  --color-field: var(--field);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -98,7 +132,7 @@
   }
   h1, h2, h3 { font-family: var(--font-sora), var(--font-body), sans-serif; letter-spacing: -0.02em; }
   ::placeholder { color: var(--tertiary); }
-  ::selection { background: rgb(150 215 55 / 0.3); }
+  ::selection { background: rgb(150 215 55 / 0.35); }
 }
 
 @utility section-label {

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: 'Sistema compartilhado de chamadas para atendimento médico.',
   icons: { icon: '/icon.svg' },
 }
-export const viewport: Viewport = { colorScheme: 'dark', themeColor: '#2D2D2D' }
+export const viewport: Viewport = { colorScheme: 'light', themeColor: '#F4F4F3' }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

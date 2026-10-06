@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Logo } from '@/components/brand/logo'
 import { LiveDot } from '@/components/ui/live-dot'
 
 type Call = { id: number; patientName: string; departmentName: string; calledAt: string }
@@ -47,11 +46,8 @@ export default function PainelPage() {
   }
 
   return (
-    <main className="tv-panel relative flex min-h-screen flex-col overflow-hidden text-foreground">
-      <header className="flex items-center justify-between px-8 py-6 lg:px-12">
-        <Logo size={46} textClassName="text-2xl" />
-      </header>
-      <section className="flex flex-1 flex-col items-center justify-center px-6 pb-20 text-center">
+    <main className="theme-dark tv-panel relative flex min-h-screen flex-col overflow-hidden text-foreground">
+      <section className="flex flex-1 flex-col items-center justify-center px-6 py-16 text-center">
         <p className="section-label flex items-center gap-3 text-base! tracking-[0.3em]!">
           <LiveDot className="size-2.5" /> Chamado agora
         </p>
@@ -60,7 +56,7 @@ export default function PainelPage() {
             <h1 className="mt-10 max-w-[92vw] font-display text-7xl leading-[1.02] font-bold tracking-[-0.03em] text-balance uppercase md:text-[8.5rem] lg:text-[9.5rem]">
               {current.patientName}
             </h1>
-            <p className="mt-10 inline-flex items-center gap-4 rounded-2xl border border-primary/35 bg-primary/8 px-8 py-4 font-display text-4xl font-semibold text-primary md:text-5xl">
+            <p className="mt-10 inline-flex items-center gap-4 rounded-2xl border border-primary/35 bg-primary/8 px-8 py-4 font-display text-4xl font-semibold text-brand md:text-5xl">
               {current.departmentName}
             </p>
           </div>

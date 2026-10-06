@@ -8,7 +8,7 @@ import { Card, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { LiveDot } from '@/components/ui/live-dot'
-import { Select } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
 
 type Department = { id: number; name: string }
 type Call = { id: number; patientName: string; departmentName: string; calledAt: string }
@@ -52,23 +52,30 @@ export default function AtendimentoPage() {
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <Card>
             <CardHeader label="Nova chamada" title="Chamar paciente" description="A chamada aparece imediatamente no painel da TV." icon={<Send />} />
-            <form onSubmit={callPatient} className="grid gap-4">
+            <form onSubmit={callPatient} className="grid gap-5">
               <Label>
                 Nome do paciente
-                <Input autoFocus value={patientName} onChange={e => setPatientName(e.target.value)} placeholder="Digite o nome completo" className="h-11 text-[15px]" />
+                <Input autoFocus value={patientName} onChange={e => setPatientName(e.target.value)} placeholder="Digite o nome completo" className="h-14 px-4 text-lg" />
               </Label>
-              <Label>
-                Setor médico
-                <Select value={departmentName} onChange={e => setDepartmentName(e.target.value)} className="h-11 text-[15px]">
-                  <option value="">Selecione o setor</option>
-                  {departments.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
-                </Select>
-              </Label>
-              <Button type="submit" size="lg" className="mt-1 w-full">
+              <fieldset className="grid gap-2">
+                <legend className="mb-2 text-sm font-medium">Setor</legend>
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2">
+                  {departments.map(d => {
+                    const active = departmentName === d.name
+                    return (
+                      <button key={d.id} type="button" aria-pressed={active} onClick={() => setDepartmentName(d.name)} className={cn('flex h-14 items-center justify-center gap-2 rounded-lg border px-4 text-[15px] font-medium transition-[background-color,border-color,color,transform] duration-200 ease-spring active:scale-[.975]', active ? 'border-primary bg-primary/12 text-foreground' : 'border-input bg-field text-muted-foreground hover:border-tertiary hover:text-foreground')}>
+                        {active && <Check className="size-4 text-brand" />} {d.name}
+                      </button>
+                    )
+                  })}
+                </div>
+                {!departments.length && <p className="text-sm text-muted-foreground">Cadastre um setor abaixo.</p>}
+              </fieldset>
+              <Button type="submit" size="lg" disabled={!patientName.trim() || !departmentName} className="mt-2 h-14 w-full text-base">
                 <Send /> Disparar chamada
               </Button>
               {message && (
-                <p role="status" className="flex animate-rise-in items-center justify-center gap-2 rounded-lg border border-primary/35 bg-primary/8 px-4 py-2.5 text-sm font-medium text-primary">
+                <p role="status" className="flex animate-rise-in items-center justify-center gap-2 rounded-lg border border-primary/35 bg-primary/8 px-4 py-2.5 text-sm font-medium text-brand">
                   <Check /> {message}
                 </p>
               )}
@@ -106,7 +113,7 @@ export default function AtendimentoPage() {
                     ? <Input autoFocus value={editingName} onChange={e => setEditingName(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveDepartment(d.id)} className="h-8 -ml-2" />
                     : <span className="flex-1 truncate text-sm font-medium">{d.name}</span>}
                   {editing === d.id
-                    ? <Button variant="ghost" size="sm" onClick={() => saveDepartment(d.id)} className="text-primary hover:text-primary">Salvar</Button>
+                    ? <Button variant="ghost" size="sm" onClick={() => saveDepartment(d.id)} className="text-brand hover:text-brand">Salvar</Button>
                     : <Button variant="ghost" size="icon-sm" onClick={() => { setEditing(d.id); setEditingName(d.name) }} aria-label={`Editar ${d.name}`}><Pencil /></Button>}
                   <Button variant="ghost" size="icon-sm" onClick={() => removeDepartment(d.id)} aria-label={`Excluir ${d.name}`} className="hover:bg-destructive/15 hover:text-destructive"><Trash2 /></Button>
                 </li>
@@ -128,7 +135,7 @@ export default function AtendimentoPage() {
                 </thead>
                 <tbody>
                   {calls.map(c => (
-                    <tr key={c.id} className="border-b border-[rgb(70_70_70/.5)] transition-colors duration-200 last:border-0 hover:bg-secondary">
+                    <tr key={c.id} className="border-b border-border transition-colors duration-200 last:border-0 hover:bg-secondary">
                       <td className="px-5 py-3 font-medium sm:px-6">{c.patientName}</td>
                       <td className="px-2 py-3 text-muted-foreground">{c.departmentName}</td>
                       <td className="px-5 py-3 text-right text-tertiary tabular-nums sm:px-6">{formatTime(c.calledAt)}</td>

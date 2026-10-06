@@ -10,3 +10,6 @@ CREATE TABLE IF NOT EXISTS patient_calls (
   department_name TEXT NOT NULL,
   called_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+INSERT INTO medical_departments (name) VALUES ('Cardiologia'), ('Enfermagem'), ('Fisioterapia')
+ON CONFLICT (name) DO NOTHING;
