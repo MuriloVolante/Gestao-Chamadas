@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { LiveDot } from '@/components/ui/live-dot'
+import { normalizeSound, playSound } from '@/lib/sound'
 
 type Call = { id: number; patientName: string; departmentName: string; calledAt: string }
 
@@ -18,7 +19,7 @@ export default function PainelPage() {
       setCurrent(data.calls[0])
       setFlash(true)
       window.setTimeout(() => setFlash(false), 900)
-      beep()
+      playSound(normalizeSound(data.sound))
     }
   }
 
@@ -27,23 +28,6 @@ export default function PainelPage() {
     const timer = setInterval(load, 2500)
     return () => clearInterval(timer)
   }, [])
-
-  function beep() {
-    try {
-      const ctx = new AudioContext()
-      ;[0, 180, 360].forEach((delay) => {
-        const oscillator = ctx.createOscillator()
-        const gain = ctx.createGain()
-        const start = ctx.currentTime + delay / 1000
-        oscillator.frequency.value = 880
-        gain.gain.setValueAtTime(0.18, start)
-        oscillator.connect(gain)
-        gain.connect(ctx.destination)
-        oscillator.start(start)
-        oscillator.stop(start + 0.1)
-      })
-    } catch {}
-  }
 
   return (
     <main className="theme-dark tv-panel relative flex min-h-screen flex-col overflow-hidden text-foreground">

@@ -1,3 +1,4 @@
+export const initSql = `
 CREATE TABLE IF NOT EXISTS medical_departments (
   id SERIAL PRIMARY KEY,
   name TEXT NOT NULL UNIQUE,
@@ -11,6 +12,13 @@ CREATE TABLE IF NOT EXISTS patient_calls (
   called_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-INSERT INTO medical_departments (name)
-SELECT unnest(ARRAY['Cardiologia', 'Enfermagem', 'Fisioterapia'])
+INSERT INTO medical_departments (name, created_at)
+SELECT unnest(ARRAY['Cardiologia', 'Enfermagem', 'Fisioterapia']), now()
 WHERE NOT EXISTS (SELECT 1 FROM medical_departments);
+
+CREATE TABLE IF NOT EXISTS call_sound (
+  id INTEGER PRIMARY KEY,
+  config JSONB NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+`

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Building2, Check, History, MonitorPlay, Pencil, Plus, Send, Trash2 } from 'lucide-react'
+import { Building2, Check, History, LoaderCircle, MonitorPlay, Pencil, Plus, Send, Trash2, Volume2 } from 'lucide-react'
 import { Logo } from '@/components/brand/logo'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardHeader } from '@/components/ui/card'
@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 type Department = { id: number; name: string }
 type Call = { id: number; patientName: string; departmentName: string; calledAt: string }
 
+const COOLDOWN_MS = 5000
 const formatTime = (date: string) => new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(date))
 
 export default function AtendimentoPage() {
@@ -24,10 +25,16 @@ export default function AtendimentoPage() {
   const [editing, setEditing] = useState<number | null>(null)
   const [editingName, setEditingName] = useState('')
   const [message, setMessage] = useState('')
+  const [cooldown, setCooldown] = useState<{ until: number; offset: number } | null>(null)
+  const [now, setNow] = useState(0)
+  const left = cooldown ? Math.max(0, cooldown.until - now) : 0
 
-  async function load() { const res = await fetch('/api/clinic', { cache: 'no-store' }); const data = await res.json(); setDepartments(data.departments); setCalls(data.calls); if (!departmentName && data.departments[0]) setDepartmentName(data.departments[0].name) }
+  function startCooldown(ms: number) { if (ms > 0) { const t = Date.now(); setNow(t); setCooldown(c => (c && c.until > t ? c : { until: t + ms, offset: COOLDOWN_MS - ms })) } }
+  useEffect(() => { if (!cooldown) return; const timer = setInterval(() => { const t = Date.now(); setNow(t); if (t >= cooldown.until) setCooldown(null) }, 100); return () => clearInterval(timer) }, [cooldown])
+
+  async function load() { const res = await fetch('/api/clinic', { cache: 'no-store' }); const data = await res.json(); setDepartments(data.departments); setCalls(data.calls); startCooldown(data.cooldownMs); if (!departmentName && data.departments[0]) setDepartmentName(data.departments[0].name) }
   useEffect(() => { load(); const timer = setInterval(load, 4000); return () => clearInterval(timer) }, [])
-  async function callPatient(e: React.FormEvent) { e.preventDefault(); if (!patientName.trim() || !departmentName) return; await fetch('/api/clinic', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ patientName, departmentName }) }); setPatientName(''); setMessage('Chamada disparada para o painel.'); load(); setTimeout(() => setMessage(''), 2500) }
+  async function callPatient(e: React.FormEvent) { e.preventDefault(); if (!patientName.trim() || !departmentName || cooldown) return; const res = await fetch('/api/clinic', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ patientName, departmentName }) }); if (res.status === 429) { startCooldown((await res.json()).cooldownMs); return } startCooldown(COOLDOWN_MS); setPatientName(''); setMessage('Chamada disparada para o painel.'); load(); setTimeout(() => setMessage(''), 2500) }
   async function addDepartment(e: React.FormEvent) { e.preventDefault(); if (!newDepartment.trim()) return; await fetch('/api/clinic', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newDepartment }) }); setNewDepartment(''); load() }
   async function saveDepartment(id: number) { await fetch('/api/clinic', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, name: editingName }) }); setEditing(null); load() }
   async function removeDepartment(id: number) { if (confirm('Excluir este setor?')) { await fetch(`/api/clinic?id=${id}`, { method: 'DELETE' }); load() } }
@@ -37,9 +44,14 @@ export default function AtendimentoPage() {
       <header className="sticky top-0 z-10 border-b border-border bg-sidebar/94 backdrop-blur-md">
         <div className="mx-auto flex h-[66px] max-w-7xl items-center justify-between px-4 sm:px-6">
           <Logo />
+          <div className="flex items-center gap-2">
+          <a href="/som" aria-label="Som da chamada" title="Som da chamada" className={buttonVariants({ variant: 'outline', size: 'icon' })}>
+            <Volume2 />
+          </a>
           <a href="/painel" target="_blank" className={buttonVariants({ variant: 'outline' })}>
             <MonitorPlay /> <span className="hidden sm:inline">Abrir painel da TV</span>
           </a>
+          </div>
         </div>
       </header>
 
@@ -71,8 +83,11 @@ export default function AtendimentoPage() {
                 </div>
                 {!departments.length && <p className="text-sm text-muted-foreground">Cadastre um setor abaixo.</p>}
               </fieldset>
-              <Button type="submit" size="lg" disabled={!patientName.trim() || !departmentName} className="mt-2 h-14 w-full text-base">
-                <Send /> Disparar chamada
+              <Button type="submit" size="lg" disabled={!patientName.trim() || !departmentName || !!cooldown} className={cn('relative mt-2 h-14 w-full text-base', cooldown && 'bg-primary/25 disabled:opacity-100')}>
+                {cooldown && <span key={cooldown.until} aria-hidden className="absolute inset-0 origin-left bg-primary" style={{ animation: `cooldown ${COOLDOWN_MS}ms linear ${-cooldown.offset}ms forwards` }} />}
+                <span className="relative flex items-center gap-2" aria-live="polite">
+                  {cooldown ? <><LoaderCircle className="animate-spin" /> Aguarde {Math.max(1, Math.ceil(left / 1000))}s para o próximo</> : <><Send /> Disparar chamada</>}
+                </span>
               </Button>
               {message && (
                 <p role="status" className="flex animate-rise-in items-center justify-center gap-2 rounded-lg border border-primary/35 bg-primary/8 px-4 py-2.5 text-sm font-medium text-brand">
@@ -123,7 +138,7 @@ export default function AtendimentoPage() {
           </Card>
 
           <Card className="overflow-hidden">
-            <CardHeader label="Registro compartilhado" title="Histórico de chamadas" description="Últimos 100 registros armazenados no Neon" icon={<History />} />
+            <CardHeader label="Registro compartilhado" title="Histórico de chamadas" description="Últimos 100 registros" icon={<History />} />
             <div className="-mx-5 max-h-80 overflow-auto sm:-mx-6">
               <table className="w-full text-left text-sm">
                 <thead className="sticky top-0 bg-card text-xs text-muted-foreground">
