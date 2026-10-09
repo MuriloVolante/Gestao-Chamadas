@@ -7,7 +7,7 @@ const interTight = Inter_Tight({ subsets: ['latin'], weight: ['400', '500', '600
 const sora = Sora({ subsets: ['latin'], weight: ['600', '700'], variable: '--font-sora', display: 'swap' })
 
 export const metadata: Metadata = {
-  title: 'Central de Chamadas | Clínica Central',
+  title: 'Gestão de Chamadas',
   description: 'Sistema compartilhado de chamadas para atendimento médico.',
   icons: { icon: '/icon.svg' },
 }

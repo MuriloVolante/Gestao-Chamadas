@@ -96,7 +96,7 @@ export default function SomPage() {
             action={<Button variant="ghost" size="sm" onClick={() => update({ steps: config.steps.map(() => []) })} disabled={empty}><Eraser /> Limpar</Button>}
           />
           <div className="overflow-x-auto">
-            <div className="grid min-w-[320px] gap-1.5" style={{ gridTemplateColumns: `2.75rem repeat(${STEPS}, minmax(0, 1fr))` }}>
+            <div className="grid min-w-[260px] gap-1.5" style={{ gridTemplateColumns: `2.75rem repeat(${STEPS}, minmax(0, 1fr))` }}>
               <span />
               {config.steps.map((_, col) => (
                 <span key={col} className={cn('pb-1 text-center text-[12px] tabular-nums transition-colors', step === col ? 'font-semibold text-foreground' : 'text-tertiary')}>{col + 1}</span>
