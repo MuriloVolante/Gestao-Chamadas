@@ -14,6 +14,8 @@ type Department = { id: number; name: string }
 type Call = { id: number; patientName: string; departmentName: string; calledAt: string }
 
 const COOLDOWN_MS = 5000
+const SECTOR_KEY = 'setor-selecionado'
+const readSaved = () => { try { return localStorage.getItem(SECTOR_KEY) } catch { return null } }
 const formatTime = (date: string) => new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date(date))
 
 export default function AtendimentoPage() {
@@ -32,7 +34,7 @@ export default function AtendimentoPage() {
   function startCooldown(ms: number) { if (ms > 0) { const t = Date.now(); setNow(t); setCooldown(c => (c && c.until > t ? c : { until: t + ms, offset: COOLDOWN_MS - ms })) } }
   useEffect(() => { if (!cooldown) return; const timer = setInterval(() => { const t = Date.now(); setNow(t); if (t >= cooldown.until) setCooldown(null) }, 100); return () => clearInterval(timer) }, [cooldown])
 
-  async function load() { const res = await fetch('/api/clinic', { cache: 'no-store' }).catch(() => null); if (!res?.ok) return; const data = await res.json(); setDepartments(data.departments); setCalls(data.calls); startCooldown(data.cooldownMs); if (!departmentName && data.departments[0]) setDepartmentName(data.departments[0].name) }
+  async function load() { const res = await fetch('/api/clinic', { cache: 'no-store' }).catch(() => null); if (!res?.ok) return; const data = await res.json(); setDepartments(data.departments); setCalls(data.calls); startCooldown(data.cooldownMs); const names: string[] = data.departments.map((d: Department) => d.name); setDepartmentName(cur => (names.includes(cur) ? cur : names.find(n => n === readSaved()) ?? names[0] ?? '')) }
   useEffect(() => { load(); const timer = setInterval(load, 4000); return () => clearInterval(timer) }, [])
   async function callPatient(e: React.FormEvent) { e.preventDefault(); if (!patientName.trim() || !departmentName || cooldown) return; const res = await fetch('/api/clinic', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ patientName, departmentName }) }); if (res.status === 429) { startCooldown((await res.json()).cooldownMs); return } startCooldown(COOLDOWN_MS); setPatientName(''); setMessage('Chamada disparada para o painel.'); load(); setTimeout(() => setMessage(''), 2500) }
   async function addDepartment(e: React.FormEvent) { e.preventDefault(); if (!newDepartment.trim()) return; await fetch('/api/clinic', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newDepartment }) }); setNewDepartment(''); load() }
@@ -75,7 +77,7 @@ export default function AtendimentoPage() {
                   {departments.map(d => {
                     const active = departmentName === d.name
                     return (
-                      <button key={d.id} type="button" aria-pressed={active} onClick={() => setDepartmentName(d.name)} className={cn('flex h-14 items-center justify-center gap-2 rounded-lg border px-4 text-[15px] font-medium transition-[background-color,border-color,color,transform] duration-200 ease-spring active:scale-[.975]', active ? 'border-primary bg-primary/12 text-foreground' : 'border-input bg-field text-muted-foreground hover:border-tertiary hover:text-foreground')}>
+                      <button key={d.id} type="button" aria-pressed={active} onClick={() => { setDepartmentName(d.name); try { localStorage.setItem(SECTOR_KEY, d.name) } catch {} }} className={cn('flex h-14 items-center justify-center gap-2 rounded-lg border px-4 text-[15px] font-medium transition-[background-color,border-color,color,transform] duration-200 ease-spring active:scale-[.975]', active ? 'border-primary bg-primary/12 text-foreground' : 'border-input bg-field text-muted-foreground hover:border-tertiary hover:text-foreground')}>
                         {active && <Check className="size-4 text-brand" />} {d.name}
                       </button>
                     )
